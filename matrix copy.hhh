@@ -1,0 +1,37 @@
+#ifndef __matrix__H__
+#define __matrix__H__
+
+#include <iostream>
+#pragma once
+
+class Matrix
+{
+private:
+    int row,column;
+    double *A;
+    double M[3][3];
+    double V[3];
+public:
+    Matrix(int row,int column,double val);
+    Matrix();
+    ~Matrix();
+    void showmat();
+    void mat_set(int row,int column,double val);
+    double Matrix::mat_get(int row,int column);
+    void I();
+    bool mat_mat(Matrix &mat_o,const Matrix &mat_a,const Matrix &mat_b);
+    bool mat_vec(Matrix &vec,const Matrix &mat);
+    void mat_scalar(Matrix& mat_o, const Matrix& mat,const double& x);
+    void vec_scalar(Matrix& vec_o, const Matrix& vec,const double& x);
+    void mat_t(Matrix& mat_o, const Matrix& mat);
+    void mat_det(double& det, const Matrix& mat);
+    void mat_det2(double & det, const Matrix& mat,int row,int col);
+    void mat_inv(Matrix& mat_o, const Matrix& mat);
+    void mat_skew(Matrix& mat,const  double& x, const double& y,const double& z);
+    void mat_inv_GJ(Matrix& mat_o,const Matrix& mat,int n);
+    void mat_add_mat(Matrix& mat_o,const Matrix& mat_a,const Matrix& mat_b);
+    void mat_scalar(Matrix & mat_o,Matrix& mat, double & x);
+    
+
+};
+#endif
