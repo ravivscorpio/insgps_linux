@@ -13,7 +13,9 @@ using namespace std;
 mySerial::mySerial(string deviceName, int baud)
 {
    handle=-1;
-   Open(deviceName,baud);
+   this->baud=baud;
+   this->deviceName=deviceName;
+   
 }
 
 mySerial::~mySerial()
@@ -30,13 +32,13 @@ void mySerial::Close(void)
 }
 
 
-bool mySerial::Open(string deviceName , int baud)
+bool mySerial::Open()
 {
     struct termios tio;
     struct termios2 tio2;
-    this->deviceName=deviceName;
-    this->baud=baud;
-    handle  = open(this->deviceName.c_str(),O_RDWR | O_NOCTTY /* | O_NONBLOCK */);
+    //this->deviceName=deviceName;
+    //this->baud=baud;
+    handle  = open(this->deviceName.c_str(),O_RDWR | O_NOCTTY | O_NDELAY/* | O_NONBLOCK */);
 
 
     if(handle <0)
@@ -92,7 +94,6 @@ int  mySerial::Receive( unsigned char  * data, int len)
 
        rlen = read(handle,data,len);
       // lenRCV+=rlen;
-      
 
    return  rlen;
 }

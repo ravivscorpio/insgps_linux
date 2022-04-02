@@ -225,7 +225,7 @@ void Matrix::dcm2euler(double& yaw,double& pitch,double& roll)
 roll=atan(this->mat_get(2,1)/this->mat_get(2,2));
 pitch=-asin(this->mat_get(2,0));
 yaw=atan2(this->mat_get(1,0),this->mat_get(0,0));
-    
+
 }
 
 
@@ -365,10 +365,13 @@ void Filter::median_filter(double& filter_output,const double& x)
     
     data.pop_front();
     data.push_back(x);
-    if (N%2==0)
-        filter_output=(data[N/2]+data[N/2-1])/2;
+    std::sort(data.begin(),data.begin()+N);
+    
+    if (this->N%2==0)
+        filter_output=(data[this->N/2]+data[this->N/2-1])/2;
     else
-        filter_output=data[N/2];
+        filter_output=data[this->N/2];
+
 
 }
 

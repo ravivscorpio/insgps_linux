@@ -18,9 +18,6 @@ BYTE MidjRxIdx=0;
 
 mySerial serialMIDG("/dev/ttyUSB0",115200);
 
-RC MidjDrv_Init (){
-   serialMIDG.Open();
-}
 
 /************************************************************************
 * Name       : RC MidjDrv_Init (void)
@@ -133,7 +130,7 @@ RC MidjDrv_Rx (unsigned char* msg)
    len = DataLen - MidjRxIdx;
    int len0=0;
 //while (len0==0)
-   len0=serialMIDG.Receive((unsigned char*)&msg[MidjRxIdx],len);
+   len0=serialMIDG.Receive((unsigned char*)&msg[4],len);
    MidjRxIdx += len0;
 
    // check if we got all [Msg_Hdr + Data_Len + CS_Len]
@@ -152,14 +149,12 @@ RC MidjDrv_Rx (unsigned char* msg)
       //  RxValid=0;
       
 //      rc = MidjDrv_FixMsg((BYTE*)msg);
- //    CalcFletcherCheckSum(&(msg[2]), DataLen-4, &CheckSum);
-   //   if (CheckSum == ((msg[DataLen-1] << 8) | msg[DataLen-2]))
-     {
-//	for  (int i=0;i<45;i++)
-	//	printf("%02x",msg[i]);
-	//printf("\n");
+      CalcFletcherCheckSum(&(msg[2]), DataLen-4, &CheckSum);
+//      if (CheckSum == ((msg[DataLen-1] << 8) | msg[DataLen-2]))
 
-  	     RxValid=1;    
+     {
+//	printf("%x %x %x \n",CheckSum,msg[DataLen-1], msg[DataLen-2]);
+  	RxValid=1;    
         rc = MidjDrv_FixMsg((BYTE*)msg);
      }
      // MidjRxMsg = NULL;

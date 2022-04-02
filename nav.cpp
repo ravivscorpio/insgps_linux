@@ -99,7 +99,7 @@
     }
     void NAV::update_att(Matrix & DCMbn_n,Matrix& wb,const double& dt)
     {
-        Matrix S,A,S1,S2,S3,S4,S5,I,DCM_nb;
+        Matrix S(3,3,0),A(3,3,0),S1(3,3,0),S2(3,3,0),S3(3,3,0),S4(3,3,0),S5(3,3,0),I(3,3,0),DCM_nb(3,3,0);
         double magn;
         Matrix euler_i(3,1,1);
         Matrix O1(3,1,0),O2(3,1,0),wb_n(3,1,0);
@@ -107,9 +107,6 @@
         this->omega_ie_n.mat_add(O1,this->omega_en_n);
         DCM_nb.mat_mul(O2,O1);
         wb.mat_sub(wb_n,O2);
-
-        
-
         wb_n.scalermultiply(euler_i,dt);
         magn=euler_i.mat_norm();
         I.I();
@@ -122,15 +119,18 @@
             S3.mat_add(S4,S1);
             S4.mat_add(A,I);
             
+            
             //A = eye(3) + (sin(magn)/magn) * S + ((1-cos(magn))/(magn^2)) * S * S;
             
 
         }
         else
             I.mat_asign(A);
-        
+
         this->DCM_bn.mat_mul(DCMbn_n,A);
+        
         DCMbn_n.mat_asign(this->DCM_bn);
+    
         // DCMbn_n = DCMbn * A;
         this->DCM_bn.dcm2euler(this->yaw,this->pitch,this->roll);
 
@@ -221,11 +221,11 @@
 
 
 
-        Matrix Fee,Fev,Fep;
-        Matrix Fve,Fvv,Fvp;
-        Matrix Fpe,Fpv,Fpp;
-        Matrix Z,I,Fgg,Faa;
-        Matrix DCMbn,M_DCMbn;
+        Matrix Fee(3,3,0),Fev(3,3,0),Fep(3,3,0);
+        Matrix Fve(3,3,0),Fvv(3,3,0),Fvp(3,3,0);
+        Matrix Fpe(3,3,0),Fpv(3,3,0),Fpp(3,3,0);
+        Matrix Z(3,3,0),I(3,3,0),Fgg(3,3,0),Faa(3,3,0);
+        Matrix DCMbn(3,3,0),M_DCMbn(3,3,0);
         Matrix F(21,21,0),G(21,12,0),H(6,21,0);
 
         this->DCM_bn.mat_asign(DCMbn);
@@ -411,7 +411,7 @@
         A.mat_add(this->Pp,M);
 
         this->xp.mat_asign(xp);
-        
+
 
 
     }
@@ -420,8 +420,9 @@
         
         Matrix vel1(3,1,0);
         Matrix Z9(9,1,0);
-        Matrix I,E;
+        Matrix I(3,3,0),M(3,3,0),MM(3,3,0),E(3,3,0);
         I.I();
+        
         this->roll=this->roll-this->xp.mat_get(0,0);
         this->pitch=this->pitch-this->xp.mat_get(1,0);
         this->yaw=this->yaw-this->xp.mat_get(2,0);  
@@ -434,12 +435,13 @@
         this->xp.mat_sub_get(ab_fix,12,0);
         this->xp.mat_sub_get(gb_drift,15,0);
         this->xp.mat_sub_get(ab_drift,18,0);
-        E.mat_skew(xp.mat_get(0,0),xp.mat_get(1,0),xp.mat_get(2,0));
-        E.mat_add(E,I);
-        this->DCM_bn.mat_asign(I);
-        E.mat_mul(this->DCM_bn,I);
-
+        E.mat_skew(this->xp.mat_get(0,0),this->xp.mat_get(1,0),this->xp.mat_get(2,0));
+        E.mat_add(M,I);
+        this->DCM_bn.mat_asign(MM);
+        M.mat_mul(this->DCM_bn,MM);
         Z9.mat_sub_set(this->xp,0,0);
         
+
+
 
     }

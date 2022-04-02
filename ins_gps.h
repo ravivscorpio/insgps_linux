@@ -33,22 +33,22 @@ public:
     Matrix align_err;
     Matrix align;
 public:
-    IMU():arw(1,3,0.3),
+    IMU():arw(1,3,0.5),
             arrw(1,3,0),
-            vrw(1,3,0.029),
+            vrw(1,3,1),
             vrrw(1,3,0),
-            gb_fix(3,1,0.01),
-            ab_fix(3,1,16),
-            gb_drift(3,1,6.5/3600),
-            ab_drift(3,1,0.1),    
-            gb_corr(1,3,100),
-            ab_corr(1,3,100),    
-            freq(1,3,100),
+            gb_fix(3,1,0),
+            ab_fix(3,1,0),
+            gb_drift(3,1,0),
+            ab_drift(3,1,0),    
+            gb_corr(1,3,500),
+            ab_corr(1,3,500),    
+            freq(1,3,50),
             align(1,3,0),
             align_err(1,3,1*D2R)
 
     {
-/*               arw.mat_set(0,0,1.240492296339036e-03);
+              /*arw.mat_set(0,0,1.240492296339036e-03);
                arw.mat_set(0,1,1.140727875285529e-03);
                arw.mat_set(0,2,9.375873096278934e-04);
                gb_fix.mat_set(0,0,-5.512800728745165e-06);
@@ -57,7 +57,7 @@ public:
                gb_drift.mat_set(0,0,7.112094640463134e-05);
                gb_drift.mat_set(0,1,7.112094640463134e-05);
                gb_drift.mat_set(0,2,1.663320036005468e-04);*/
-               align_err.mat_set(0,2,180*D2R);
+               align_err.mat_set(0,2,0*D2R);
     }
 
 // Angle random walks [X Y Z] (deg/root-hour)
@@ -89,9 +89,9 @@ public:
 
 public:
     GPS():std(1,3,1e-7),
-            stdm(1,3,1),
+            stdm(1,3,0.1),
             //stdv(1,3,0.0514),
-            stdv(1,3,10),
+            stdv(1,3,0.1),
             larm(3,1,0),
             freq(5)
 

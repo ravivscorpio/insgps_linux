@@ -11,10 +11,12 @@
 #include "MidjDrv.h"
 #include <sstream>
 
+
+
 using namespace std;
 
 
-unsigned char midg_data[255];
+unsigned char midg_data[4096];
 unsigned int len=0;
 MIDJ_InsMsg* InsMsg;
 int main()
@@ -63,84 +65,67 @@ int main()
     bool gps_valid=false,first_init_gps=false;
     int fff=0;
     double a[50],b[50];
-    int M=10,N=15;
+    int M=5,N=15;
+    MidjDrv_Init ();
     for (int i=0;i<N;i++)
     {
         a[i]=0;
         b[i]=1.0   /N;
     }
-    Filter p1(M),q1(M),r1(M),ax1(M),ay1(M),az1(M);
+    Filter p1(M),q1(M),r1(M),ax1(M),ay1(M),az1(M),t1(M);
     Filter p2(N,b,a),q2(N,b,a),r2(N,b,a),ax2(N,b,a),ay2(N,b,a),az2(N,b,a);
     double p,q,r,ax,ay,az;
     double p3,q3,r3,ax3,ay3,az3;
+int t_old;
     if (file.is_open())
     {
-        for (int iii=0;iii<25;iii++)
+        for (int iii=0;iii<20;iii++)
             getline(file,line);
         
         while(true)
         {
-            stringstream str(line);
-            int i=0;
-            /*while(getline(str,word,','))
-            {
 
-                if (i<=14)
-                {
-                    data[i]=std::stod(word);
-                    i++;
-                }
-                if (i>14)
-                    break;
-
-
-            }*/
-
-            if  (MidjDrv_Rx (midg_data))
+            if  ( MidjDrv_Rx (midg_data))
             {
             
-                cout.precision(6);
                 InsMsg=(MIDJ_InsMsg*)midg_data;
-                //printf("Yaw=%f6.2 Pitch=%f6.2 Roll=%f6.2\n",InsMsg->Yaw/100.0,InsMsg->Pitch/100.0,InsMsg->Roll/100.0);
-                //printf("Yaw=%f6.2 Pitch=%f6.2 Roll=%f6.2\n",InsMsg->xAcc/1000.0*9.81,InsMsg->yAcc/1000.0*9.81,InsMsg->zAcc/1000.0*9.81);
-                //cout<<InsMsg->TimeStamp<<" "<<InsMsg->xAcc/1000.0*9.81<<" "<<" "<<InsMsg->yAcc/1000.0*9.81<<" "<<InsMsg->zAcc/1000.0*9.81<<" "<<InsMsg->xRate/100.0<<" "<<InsMsg->yRate/100.0<<" "<<InsMsg->zRate/100.0<<endl;
-                //printf("t=%10.4f p=%6.2f q=%6.2f r=%6.2f\n",InsMsg->TimeStamp/1000.0,InsMsg->xRate/100.0,InsMsg->yRate/100.0,InsMsg->zRate/100.0);
-                //continue;
                
             }
             else
                 continue;
             
             t=InsMsg->TimeStamp/1000.0;
-            
-/*            p1.median_filter(p,InsMsg->xRate/100.0/180*3.14159265358);
+            /*t1.median_filter(t,InsMsg->TimeStamp/1000.0);
+            p1.median_filter(p,InsMsg->xRate/100.0/180*3.14159265358);
             q1.median_filter(q,InsMsg->yRate/100.0/180*3.14159265358);
             r1.median_filter(r,InsMsg->zRate/100.0/180*3.14159265358);
             ax1.median_filter(ax,InsMsg->xAcc/1000.0*9.81);
             ay1.median_filter(ay,InsMsg->yAcc/1000.0*9.81);
             az1.median_filter(az,InsMsg->zAcc/1000.0*9.81);*/
-            p3=InsMsg->xRate/100.0/180*3.14159265358;
-            q3=InsMsg->yRate/100.0/180*3.14159265358;
-            r3=InsMsg->zRate/100.0/180*3.14159265358;
-            ax3=InsMsg->xAcc/1000.0*9.81;
-            ay3=InsMsg->yAcc/1000.0*9.81;
-            az3=InsMsg->zAcc/1000.0*9.81;
+            p=InsMsg->xRate/100.0/180.0*3.14159265358;
+            q=InsMsg->yRate/100.0/180.0*3.14159265358;
+            r=InsMsg->zRate/100.0/180.0*3.14159265358;
+            ax=InsMsg->xAcc/1000.0*9.81;
+            ay=InsMsg->yAcc/1000.0*9.81;
+            az=InsMsg->zAcc/1000.0*9.81;
+	        for (int i=0;i<50;i++)
+	            midg_data[i]=0;
             //p2.filter(p,p3);
             //q2.filter(q,q3);
             //r2.filter(r,r3);
             //ax2.filter(ax,ax3);
             //ay2.filter(ay,ay3);
             //az2.filter(az,az3);
-            cout<<InsMsg->TimeStamp<<" "<<p3<<" "<<" "<<q3<<" "<<r3<<" "<<ax3<<" "<<ay3<<" "<<az3<<endl;
-            continue;
+           //cout<<" "<<t<<" "<<p<<" "<<" "<<q<<" "<<r<<" "<<ax<<" "<<ay<<" "<<az<<endl;
+           //continue;
 
 
-            imu_data.wb.mat_set(0,0,p3);
-            imu_data.wb.mat_set(1,0,q3);
-            imu_data.wb.mat_set(2,0,r3);
-            imu_data.fb.mat_set(0,0,ax3);
-            imu_data.fb.mat_set(1,0,ay3);
-            imu_data.fb.mat_set(2,0,az3);
+            imu_data.wb.mat_set(0,0,p);
+            imu_data.wb.mat_set(1,0,q);
+            imu_data.wb.mat_set(2,0,r);
+            imu_data.fb.mat_set(0,0,ax);
+            imu_data.fb.mat_set(1,0,ay);
+            imu_data.fb.mat_set(2,0,az);
             /*imu_data.wb.mat_set(0,0,InsMsg->xRate/100.0/180*3.14159265358);
             imu_data.wb.mat_set(1,0,InsMsg->yRate/100.0/180*3.14159265358);
             imu_data.wb.mat_set(2,0,InsMsg->zRate/100.0/180*3.14159265358);
@@ -189,9 +174,9 @@ int main()
                 gps_data.pos.mat_set(1,0,0.60852916);
                 gps_data.pos.mat_set(2,0,44.360001);
 
-                gps_data.vel.mat_set(0,0,0.01);
-                gps_data.vel.mat_set(1,0,0.02);
-                gps_data.vel.mat_set(2,0,0.03);
+                gps_data.vel.mat_set(0,0,0.0);
+                gps_data.vel.mat_set(1,0,0.0);
+                gps_data.vel.mat_set(2,0,0.0);
                 nav.init(imu_data,gps_data,gps,imu2);
                 
             }
@@ -200,10 +185,11 @@ int main()
         
             
                 dti=t-ti_old;
+                
+                if ((dti>0.1)||(dti<0))
+                    continue;
+                
                 ti_old=t;
-
-
-               
                 imu2.gb_fix.mat_add(wb_corrected,imu_data.wb);
                 wb_corrected.mat_add(wb_corrected,imu2.gb_drift);
                 imu2.ab_fix.mat_add(fb_corrected,imu_data.fb);
@@ -222,7 +208,11 @@ int main()
             if (gps_valid)
             {
                 dtg=t-tg_old;
+                if ((dtg>1)||(dtg<-1))
+                    continue;
+            
                 tg_old=t;
+                
                 nav.get_Tpr(Tpr);
                 zp_angle.mat_set(0,0,lt-gps_data.pos.mat_get(0,0));
                 zp_angle.mat_set(1,0,lg-gps_data.pos.mat_get(1,0));
@@ -235,17 +225,19 @@ int main()
                 nav.get_F(imu2);
     
                 nav.kalman(xp,z,dtg);
-
-            if (kkk%5==0){
-                // printf("%d\n",kkk);
-                // z.showmat();  
-                // xp.showmat();
-                gps_valid=true;
                 
-              }     
-              fff++;  
-                nav.update(imu2.gb_fix,imu2.ab_fix,imu2.gb_drift,imu2.ab_drift);
-            }
+		        nav.update(imu2.gb_fix,imu2.ab_fix,imu2.gb_drift,imu2.ab_drift);
+
+		gps_valid=false;
+	   }
+           if (kkk%10==0)
+	   {
+               gps_valid=true;
+                
+           }     
+              
+           
+            
 
                 
             kkk++;
