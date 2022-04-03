@@ -47,8 +47,8 @@ public:
     double mat_norm();
     void mat_add(Matrix& mat_out,const Matrix& mat);
     void mat_sub(Matrix& mat_out,const Matrix& mat);
-    void median_filter(double& filter_output,const double& x,const int N);
-    void filter(double& filter_output,const double& x,const int& N,const double& a,const double& b);
+    void  Rates_bn(double& roll , double& pitch);
+    void  Rates_nb(double& roll , double& pitch);
     
 
 };

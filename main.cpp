@@ -21,7 +21,7 @@ unsigned int len=0;
 MIDJ_InsMsg* InsMsg;
 int main()
 {
-    int kkk=0;
+    int kkk=1;
     string fname="INS_GPS_16072015_123908.kf2";
     string line,word;
     fstream file (fname,ios::in);
@@ -33,7 +33,7 @@ int main()
     IMU imu1,imu2;
     mat.mat_skew(1,2,3);
     //mat.showmat();
-    imu1.imu_si_errors(imu2,0.01);
+    //imu1.imu_si_errors(imu2,0.01);
     GPS gps;  
 
     GPS_DATA gps_data;
@@ -42,11 +42,15 @@ int main()
     NAV nav;
 
     double yaw,pitch,roll;
+    double yaw_old,pitch_old,roll_old;
     double lt,lg,h;
     Matrix vel(3,1,0);
     Matrix fn(3,1,0);
     Matrix DCMnb;
     Matrix DCMbn;
+    Matrix EulerRates(3,1,0);   
+    Matrix pqr(3,1,0);
+    Matrix pqr_drift(3,1,0);
 
     Matrix xp(21,1,9);
 
@@ -61,8 +65,11 @@ int main()
     Matrix Tpr;
     Matrix z(6,1,0),zp(3,1,0),zv(3,1,0),zp_angle(3,1,0);
     double data[15];
-    double dtg=0.2,dti=0.01,tg_old=0,ti_old=0,t=0;
-    bool gps_valid=false,first_init_gps=false;
+    double dtg=0.2,dti=0.01,dty=10,tg_old=0,ti_old=0,t=0,ty_old=0;
+    bool yaw_valid=false,gps_valid=false,first_init_gps=false;
+    double yaw_measure;
+    Matrix yaw_drift(3,1,0);
+    Matrix Rate_nb(3,3,0);
     int fff=0;
     double a[50],b[50];
     int M=5,N=15;
@@ -76,7 +83,7 @@ int main()
     Filter p2(N,b,a),q2(N,b,a),r2(N,b,a),ax2(N,b,a),ay2(N,b,a),az2(N,b,a);
     double p,q,r,ax,ay,az;
     double p3,q3,r3,ax3,ay3,az3;
-int t_old;
+    int t_old;
     if (file.is_open())
     {
         for (int iii=0;iii<20;iii++)
@@ -102,20 +109,20 @@ int t_old;
             ax1.median_filter(ax,InsMsg->xAcc/1000.0*9.81);
             ay1.median_filter(ay,InsMsg->yAcc/1000.0*9.81);
             az1.median_filter(az,InsMsg->zAcc/1000.0*9.81);*/
-            p=InsMsg->xRate/100.0/180.0*3.14159265358;
-            q=InsMsg->yRate/100.0/180.0*3.14159265358;
-            r=InsMsg->zRate/100.0/180.0*3.14159265358;
-            ax=InsMsg->xAcc/1000.0*9.81;
-            ay=InsMsg->yAcc/1000.0*9.81;
-            az=InsMsg->zAcc/1000.0*9.81;
+            p3=InsMsg->xRate/100.0/180.0*3.14159265358;
+            q3=InsMsg->yRate/100.0/180.0*3.14159265358;
+            r3=InsMsg->zRate/100.0/180.0*3.14159265358;
+            ax3=InsMsg->xAcc/1000.0*9.81;
+            ay3=InsMsg->yAcc/1000.0*9.81;
+            az3=InsMsg->zAcc/1000.0*9.81;
 	        for (int i=0;i<50;i++)
 	            midg_data[i]=0;
-            //p2.filter(p,p3);
-            //q2.filter(q,q3);
-            //r2.filter(r,r3);
-            //ax2.filter(ax,ax3);
-            //ay2.filter(ay,ay3);
-            //az2.filter(az,az3);
+            p2.filter(p,p3);
+            q2.filter(q,q3);
+            r2.filter(r,r3);
+            ax2.filter(ax,ax3);
+            ay2.filter(ay,ay3);
+            az2.filter(az,az3);
            //cout<<" "<<t<<" "<<p<<" "<<" "<<q<<" "<<r<<" "<<ax<<" "<<ay<<" "<<az<<endl;
            //continue;
 
@@ -159,6 +166,7 @@ int t_old;
             {
                 tg_old=t;
                 ti_old=t;
+		ty_old=t;
 
                 
                 first_init_gps=true;
@@ -192,6 +200,7 @@ int t_old;
                 ti_old=t;
                 imu2.gb_fix.mat_add(wb_corrected,imu_data.wb);
                 wb_corrected.mat_add(wb_corrected,imu2.gb_drift);
+		wb_corrected.mat_add(wb_corrected,pqr_drift);
                 imu2.ab_fix.mat_add(fb_corrected,imu_data.fb);
                 fb_corrected.mat_add(fb_corrected,imu2.ab_drift);
 
@@ -204,7 +213,18 @@ int t_old;
                 nav.vel_update(vel,fn,dti);
                 
                 nav.pos_update(lt,lg,h,dti);
+		DCMbn.mat_t(DCMnb);
+		DCMbn.dcm2euler(yaw,pitch,roll);
+		EulerRates.mat_set(0,0,(roll-roll_old)/dti);
+                EulerRates.mat_set(1,0,(pitch-pitch_old)/dti);
+                EulerRates.mat_set(2,0,(yaw-yaw_old)/dti);
+		yaw_old=yaw;
+		pitch_old=pitch;
+		roll_old=roll;
 
+		//add median
+                cout<<roll/3.14*180.0<<" "<<pitch/3.14*180.0<<" "<<yaw/3.14*180<<endl;
+		
             if (gps_valid)
             {
                 dtg=t-tg_old;
@@ -229,6 +249,7 @@ int t_old;
 		        nav.update(imu2.gb_fix,imu2.ab_fix,imu2.gb_drift,imu2.ab_drift);
 
 		gps_valid=false;
+		yaw_valid=false;
 	   }
            if (kkk%10==0)
 	   {
@@ -237,6 +258,28 @@ int t_old;
            }     
               
            
+           if (kkk%505==0)
+           {
+	       dty=t-ty_old;
+	       ty_old=t;
+               yaw_valid=true;
+	       yaw_measure=0;	
+	       
+	      
+	      Rate_nb.Rates_nb(roll,pitch);
+	      Rate_nb.mat_mul(pqr,EulerRates);
+	      yaw_drift.mat_set(2,0, yaw_drift.mat_get(2,0)+(yaw_measure-yaw)/dty);
+	      Rate_nb.mat_mul(pqr_drift,yaw_drift);
+	      yaw=yaw+(yaw_measure-yaw);
+	      DCMnb.euler2dcm(yaw,pitch,roll);
+	      DCMnb.mat_t(DCMbn);
+	      nav.update_yaw(DCMbn);
+		
+
+	   
+
+
+           }
             
 
                 

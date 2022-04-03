@@ -193,9 +193,9 @@
         lg=this->lg;
         h=this->h;
         
-        cout.precision(10);
+//        cout.precision(10);
         
-        cout<<this->pitch*180.0/3.1415<<" "<<this->roll*180.0/3.1415<<" "<<this->yaw*180.0/3.1415<<" "<<endl;
+//        cout<<this->pitch*180.0/3.1415<<" "<<this->roll*180.0/3.1415<<" "<<this->yaw*180.0/3.1415<<" "<<endl;
         
         //cout<<this->vel.mat_get(0,0)<<" "<<this->vel.mat_get(1,0)<<" "<<this->vel.mat_get(2,0)<<endl;
         
@@ -445,3 +445,8 @@
 
 
     }
+    void NAV::update_yaw(Matrix& DCM)
+    {
+	DCM.mat_asign(this->DCM_bn);
+    }
+

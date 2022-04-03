@@ -192,7 +192,7 @@ void Matrix::mat_sub_get(Matrix& mat_out,const int row,const int col)
 
 void Matrix::euler2dcm(const  double& yaw, const double& pitch,const double& roll)
 {
-
+//ned to body
     Matrix C1,C2,C3,C2C1,C3C2C1;
     
     double cy=cos(yaw);
@@ -221,7 +221,7 @@ void Matrix::euler2dcm(const  double& yaw, const double& pitch,const double& rol
 
 void Matrix::dcm2euler(double& yaw,double& pitch,double& roll)
 {
-
+//body to ned
 roll=atan(this->mat_get(2,1)/this->mat_get(2,2));
 pitch=-asin(this->mat_get(2,0));
 yaw=atan2(this->mat_get(1,0),this->mat_get(0,0));
@@ -393,6 +393,37 @@ void Filter::filter(double& filter_output,const double& x)
         data_out.push_front(filter_output);
         
 }
+
+void  Matrix::Rates_bn(double& roll,  double& pitch)
+{
+
+this->A[0]=1;
+this->A[1]=sin(roll)*tan(pitch);
+this->A[2]=cos(roll)*tan(pitch);
+this->A[3]=0;
+this->A[4]=cos(roll);
+this->A[5]=-sin(roll);
+this->A[6]=0;
+this->A[7]=sin(roll)/cos(pitch);
+this->A[8]=cos(roll)/cos(pitch);
+
+}
+
+void  Matrix::Rates_nb(double& roll,  double& pitch)
+{
+
+this->A[0]=1;
+this->A[1]=0;
+this->A[2]=-sin(pitch);
+this->A[3]=0;
+this->A[4]=cos(roll);
+this->A[5]=cos(pitch)*sin(roll);
+this->A[6]=0;
+this->A[7]=-sin(roll);
+this->A[8]=cos(roll)*cos(pitch);
+
+}
+
 
 
 

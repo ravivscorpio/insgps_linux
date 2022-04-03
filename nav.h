@@ -82,6 +82,7 @@ public:
     void get_F(IMU& imu);
     void kalman(Matrix& xp,Matrix &z,double& dtg);
     void update(Matrix& gb_fix,Matrix& ab_fix,Matrix& gb_grift,Matrix& ab_drift);
+    void update_yaw(Matrix& DCM);
 
 };
 #endif

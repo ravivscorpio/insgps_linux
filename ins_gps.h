@@ -33,14 +33,14 @@ public:
     Matrix align_err;
     Matrix align;
 public:
-    IMU():arw(1,3,0.5),
+    IMU():arw(1,3,2),
             arrw(1,3,0),
-            vrw(1,3,1),
+            vrw(1,3,0.2),
             vrrw(1,3,0),
             gb_fix(3,1,0),
-            ab_fix(3,1,0),
-            gb_drift(3,1,0),
-            ab_drift(3,1,0),    
+            ab_fix(3,1,50),
+            gb_drift(3,1,0.02),
+            ab_drift(3,1,1),    
             gb_corr(1,3,500),
             ab_corr(1,3,500),    
             freq(1,3,50),
@@ -48,16 +48,32 @@ public:
             align_err(1,3,1*D2R)
 
     {
-              /*arw.mat_set(0,0,1.240492296339036e-03);
-               arw.mat_set(0,1,1.140727875285529e-03);
-               arw.mat_set(0,2,9.375873096278934e-04);
-               gb_fix.mat_set(0,0,-5.512800728745165e-06);
-               gb_fix.mat_set(0,1,1.109262639036322e-05);
-               gb_fix.mat_set(0,2,1.269351691201790e-04);
-               gb_drift.mat_set(0,0,7.112094640463134e-05);
-               gb_drift.mat_set(0,1,7.112094640463134e-05);
-               gb_drift.mat_set(0,2,1.663320036005468e-04);*/
-               align_err.mat_set(0,2,0*D2R);
+            arw.mat_set(0,0,0.0711);
+            arw.mat_set(0,1,0.0654);
+            arw.mat_set(0,2,0.0537);
+            vrw.mat_set(0,0,0.0024);
+            vrw.mat_set(0,1,0.0025);
+            vrw.mat_set(0,2,0.0028);
+            gb_fix.mat_set(0,0,-3.1586e-04);
+            gb_fix.mat_set(0,1,6.3556e-04);
+            gb_fix.mat_set(0,2,0.0073);  
+            ab_fix.mat_set(0,0,-0.0184);
+            ab_fix.mat_set(0,1,0.1568);
+            ab_fix.mat_set(0,2,0-9.8405+9.81);
+            gb_drift.mat_set(0,0,0.0041);
+            gb_drift.mat_set(0,1,0.0037);
+            gb_drift.mat_set(0,2,0.0037);  
+            ab_drift.mat_set(0,0,0.0010);
+            ab_drift.mat_set(0,1,8.9956e-04);
+            ab_drift.mat_set(0,2,0.0011);                                          
+            gb_corr.mat_set(0,0,1000);
+            gb_corr.mat_set(0,1,700);
+            gb_corr.mat_set(0,2,400);  
+            ab_corr.mat_set(0,0,100);
+            ab_corr.mat_set(0,1,1000);
+            ab_corr.mat_set(0,2,200);                                          
+
+            align_err.mat_set(0,2,180*D2R);               align_err.mat_set(0,2,0*D2R);
     }
 
 // Angle random walks [X Y Z] (deg/root-hour)
