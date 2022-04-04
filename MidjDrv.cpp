@@ -58,7 +58,7 @@ RC MidjDrv_Rx (unsigned char* msg)
    BYTE DataLen;
    RC RxValid=0;
 
-   len=serialMIDG.Receive((unsigned char*)buffer,2);
+   len=serialMIDG.Receive((unsigned char*)buffer,MAX_BUFFER_SIZE);
    if (len<=0)
       return RxValid;
    for (int i=0;i<len;i++)

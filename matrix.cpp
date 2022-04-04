@@ -8,7 +8,8 @@ Matrix::Matrix()
         this->row=3;
         this->column=3;
         A=(double*) new double[9];
-
+        for (int i=0;i<row*column;i++)
+              A[i]=0;
    
 
     
@@ -30,7 +31,8 @@ Matrix::~Matrix()
         delete this->A;
 }
 
-void Matrix::showmat(){
+void Matrix::showmat() const
+{
         cout.precision(10);
 	if(this->row>0&&this->column>0){
 		int k=0;
@@ -70,7 +72,12 @@ void Matrix::I(){
                         A[i]=1;
 
 }
-void Matrix::mat_mul(Matrix& mat_out,Matrix& mat)
+void Matrix::Z(){
+        for (int i=0;i<row*column;i++)
+              A[i]=0;
+
+}
+void Matrix::mat_mul(Matrix& mat_out,Matrix& mat) const
 {
 
         Matrix M(mat_out.row,mat_out.column,0);
@@ -106,7 +113,7 @@ void Matrix::mat_mul(Matrix& mat_out,Matrix& mat)
 
 
 
-void Matrix::scalermultiply(Matrix& mat_out,const double& k)
+void Matrix::scalermultiply(Matrix& mat_out,const double& k) const
 {
 
      
@@ -120,7 +127,7 @@ void Matrix::scalermultiply(Matrix& mat_out,const double& k)
 }
 
 
-void Matrix::mat_t(Matrix& mat_out)
+void Matrix::mat_t(Matrix& mat_out) const
 {
 	
 	int k=0;
@@ -132,7 +139,7 @@ void Matrix::mat_t(Matrix& mat_out)
 	}
 
 }
-void Matrix::mat_asign(Matrix& mat_out)
+void Matrix::mat_asign(Matrix& mat_out) const
 {
 	
 	int k=0;
@@ -146,7 +153,7 @@ void Matrix::mat_asign(Matrix& mat_out)
 }
 
 
-double Matrix::mat_norm()
+double Matrix::mat_norm() const  
 {
 	
 	int k=0;
@@ -175,7 +182,7 @@ void Matrix::mat_sub_set(Matrix& mat_out,const int row,const int col)
         }
 }
 
-void Matrix::mat_sub_get(Matrix& mat_out,const int row,const int col)
+void Matrix::mat_sub_get(Matrix& mat_out,const int row,const int col) const
 {
         double val;
         int c=mat_out.column;
@@ -190,65 +197,17 @@ void Matrix::mat_sub_get(Matrix& mat_out,const int row,const int col)
         }
 }
 
-void Matrix::euler2dcm(const  double& yaw, const double& pitch,const double& roll)
-{
-//ned to body
-    Matrix C1,C2,C3,C2C1,C3C2C1;
-    
-    double cy=cos(yaw);
-    double sy=sin(yaw);
-    double cp=cos(pitch);
-    double sp=sin(pitch);   
-    double cr=cos(roll);
-    double sr=sin(roll);    
-
-    C1.A[0]=cy;    C1.A[1]=sy; C1.A[2]=0;
-    C1.A[3]=-sy;   C1.A[4]=cy; C1.A[5]=0;
-    C1.A[6]=0;     C2.A[7]=0  ; C1.A[8]=1;
-
-    C2.A[0]=cp;    C2.A[1]=0; C2.A[2]=-sp;
-    C2.A[3]=0;   C2.A[4]=1; C2.A[5]=0;
-    C2.A[6]=sp;     C2.A[7]=0  ;C2.A[8]=cp;
-
-    C3.A[0]=1;   C3.A[1]=0;   C3.A[2]=0;
-    C3.A[3]=0;   C3.A[4]=cr;  C3.A[5]=sr;
-    C3.A[6]=0;   C3.A[7]=-sr; C3.A[8]=cr;   
-    
-    C2.mat_mul(C2C1,C1);
-    C3.mat_mul(*this,C2C1);
-    
-}
-
-void Matrix::dcm2euler(double& yaw,double& pitch,double& roll)
-{
-//body to ned
-roll=atan(this->mat_get(2,1)/this->mat_get(2,2));
-pitch=-asin(this->mat_get(2,0));
-yaw=atan2(this->mat_get(1,0),this->mat_get(0,0));
-
-}
 
 
 
 
 
-void Matrix::mat_skew(const  double& x, const double& y,const double& z)
-{
 
-    
-    this->A[0]=0;
-    this->A[1]=-z;
-    this->A[2]=y;
-    this->A[3]=z;
-    this->A[4]=0;
-    this->A[5]=-x;
-    this->A[6]=-y;
-    this->A[7]=x;
-    this->A[8]=0;
-    
-}
 
-void Matrix::mat_inv_GJ(Matrix& mat_o)
+
+
+
+void Matrix::mat_inv_GJ(Matrix& mat_o) 
 {
 
 
@@ -299,7 +258,7 @@ double ratio;
 
 
 }
-void Matrix::mat_add(Matrix& mat_out,const Matrix& mat)
+void Matrix::mat_add(Matrix& mat_out,const Matrix& mat) const
 {
 	int r=this->row;
 	int c=this->column;
@@ -316,7 +275,7 @@ void Matrix::mat_add(Matrix& mat_out,const Matrix& mat)
 
 }
 
-void Matrix::mat_sub(Matrix& mat_out,const Matrix& mat)
+void Matrix::mat_sub(Matrix& mat_out,const Matrix& mat) const
 {
 	int r=this->row;
 	int c=this->column;
@@ -332,6 +291,205 @@ void Matrix::mat_sub(Matrix& mat_out,const Matrix& mat)
 
 }
 
+void Matrix::mat_fun(Matrix& mat_out,const double (*fun)(double)) const
+{
+        for (int i=0;i<(this->column*this->row);i++)
+        {
+                mat_out.A[i]=fun(this->A[i]);
+        }
+}
+
+
+Euler::~Euler()
+{
+
+}
+void Euler::euler2dcm(const  double& yaw, const double& pitch,const double& roll)
+{
+//ned to body
+    Euler C1,C2,C3,C2C1,C3C2C1;
+    
+    double cy=cos(yaw);
+    double sy=sin(yaw);
+    double cp=cos(pitch);
+    double sp=sin(pitch);   
+    double cr=cos(roll);
+    double sr=sin(roll);    
+
+    C1.A[0]=cy;    C1.A[1]=sy; C1.A[2]=0;
+    C1.A[3]=-sy;   C1.A[4]=cy; C1.A[5]=0;
+    C1.A[6]=0;     C2.A[7]=0  ; C1.A[8]=1;
+
+    C2.A[0]=cp;    C2.A[1]=0; C2.A[2]=-sp;
+    C2.A[3]=0;   C2.A[4]=1; C2.A[5]=0;
+    C2.A[6]=sp;     C2.A[7]=0  ;C2.A[8]=cp;
+
+    C3.A[0]=1;   C3.A[1]=0;   C3.A[2]=0;
+    C3.A[3]=0;   C3.A[4]=cr;  C3.A[5]=sr;
+    C3.A[6]=0;   C3.A[7]=-sr; C3.A[8]=cr;   
+    
+    C2.mat_mul(C2C1,C1);
+    C3.mat_mul(*this,C2C1);
+    
+}
+
+void Euler::dcm2euler(double& yaw,double& pitch,double& roll) const
+{
+//body to ned
+roll=atan(this->mat_get(2,1)/this->mat_get(2,2));
+pitch=-asin(this->mat_get(2,0));
+yaw=atan2(this->mat_get(1,0),this->mat_get(0,0));
+
+}
+
+
+
+
+
+void Euler::mat_skew(const  double& x, const double& y,const double& z)
+{
+//body to ned
+    
+    this->A[0]=0;
+    this->A[1]=-z;
+    this->A[2]=y;
+    this->A[3]=z;
+    this->A[4]=0;
+    this->A[5]=-x;
+    this->A[6]=-y;
+    this->A[7]=x;
+    this->A[8]=0;
+    
+}
+
+void  Euler::Rates_bn(double& roll,  double& pitch)
+{
+
+this->A[0]=1;
+this->A[1]=sin(roll)*tan(pitch);
+this->A[2]=cos(roll)*tan(pitch);
+this->A[3]=0;
+this->A[4]=cos(roll);
+this->A[5]=-sin(roll);
+this->A[6]=0;
+this->A[7]=sin(roll)/cos(pitch);
+this->A[8]=cos(roll)/cos(pitch);
+
+}
+
+void  Euler::Rates_nb(double& roll,  double& pitch)
+{
+
+this->A[0]=1;
+this->A[1]=0;
+this->A[2]=-sin(pitch);
+this->A[3]=0;
+this->A[4]=cos(roll);
+this->A[5]=cos(pitch)*sin(roll);
+this->A[6]=0;
+this->A[7]=-sin(roll);
+this->A[8]=cos(roll)*cos(pitch);
+
+}
+
+
+
+
+Quaternion::Quaternion()
+{
+        this->row=4;
+        this->column=1;
+        A=(double*) new double[4];
+        for (int i=0;i<row*column;i++)
+              A[i]=0;     
+}
+Quaternion::~Quaternion()
+{
+    
+}
+void Quaternion::euler2quat(const  double& yaw, const double& pitch,const double& roll)
+{
+//ZRX rotation
+        Matrix c_eul(1,3,0),s_eul(1,3,0);
+        c_eul.mat_set(0,0,cos(yaw/2));
+        c_eul.mat_set(0,1,cos(pitch/2));
+        c_eul.mat_set(0,2,cos(roll/2));
+        s_eul.mat_set(0,0,sin(yaw/2));
+        s_eul.mat_set(0,1,sin(pitch/2));
+        s_eul.mat_set(0,2,sin(roll/2));
+        
+        this->A[3]= c_eul.mat_get(0,0)*c_eul.mat_get(0,1)*c_eul.mat_get(0,2) + s_eul.mat_get(0,0)*s_eul.mat_get(0,1)*s_eul.mat_get(0,2);
+        this->A[0]= c_eul.mat_get(0,0)*c_eul.mat_get(0,1)*s_eul.mat_get(0,2) - s_eul.mat_get(0,0)*s_eul.mat_get(0,1)*c_eul.mat_get(0,2);
+        this->A[1]= c_eul.mat_get(0,0)*s_eul.mat_get(0,1)*c_eul.mat_get(0,2) + s_eul.mat_get(0,0)*c_eul.mat_get(0,1)*s_eul.mat_get(0,2);
+        this->A[2]= s_eul.mat_get(0,0)*c_eul.mat_get(0,1)*c_eul.mat_get(0,2) - c_eul.mat_get(0,0)*s_eul.mat_get(0,1)*s_eul.mat_get(0,2);
+
+}
+
+void Quaternion::qua2dcm(Euler & DCMbn) const
+{
+        //body to ned
+        double a,b,c,d;
+
+        a=this->A[3];
+        b=this->A[0];
+        c=this->A[1];
+        d=this->A[2];
+
+        DCMbn.mat_set(0,0, a*a + b*b - c*c - d*d);
+        DCMbn.mat_set(0,1, 2*(b*c - a*d));
+        DCMbn.mat_set(0,2, 2*(a*c + b*d));
+        DCMbn.mat_set(1,0, 2*(a*d + b*c));
+        DCMbn.mat_set(1,1, a*a - b*b + c*c - d*d);
+        DCMbn.mat_set(1,2, 2*(c*d - a*b));
+        DCMbn.mat_set(2,0, 2*(b*d - a*c));
+        DCMbn.mat_set(2,1, 2*(c*d + a*b));
+        DCMbn.mat_set(2,2, a*a - b*b - c*c + d*d);        
+
+
+}
+void Quaternion::qua_update(const Quaternion& q,const Matrix & wb,const double dt)
+{
+        double norm,co,si,qw1,qw2,qw3,qw4;
+        Matrix wnorm(3,1,0);
+        Matrix Om(4,4,0);
+        Matrix qout(4,1,0);
+        double (*c)(double);
+        c=&cos;
+
+        //wb.mat_asign(wnorm);
+        norm=wb.mat_norm();
+        if (norm==0)
+        {
+                return;
+        }
+        co=cos(0.5*norm*dt);
+        si=sin(0.5*norm*dt);
+
+        wb.scalermultiply(wnorm,1/norm);
+
+        qw1=wnorm.mat_get(0,0)*si;
+        qw2=wnorm.mat_get(1,0)*si;
+        qw3=wnorm.mat_get(2,0)*si;
+        qw4=co;
+        
+        Om.mat_set(0,0,qw4);Om.mat_set(0,1,qw3);Om.mat_set(0,2,-qw2);Om.mat_set(0,3,qw1);
+        Om.mat_set(1,0,-qw3);Om.mat_set(1,1,qw4);Om.mat_set(1,2,qw1);Om.mat_set(1,3,qw2);
+        Om.mat_set(2,0,qw2);Om.mat_set(2,1,-qw1);Om.mat_set(2,2,qw4);Om.mat_set(2,3,qw3);
+        Om.mat_set(3,0,qw1);Om.mat_set(3,1,-qw2);Om.mat_set(3,2,-qw3);Om.mat_set(3,3,qw4);
+
+        Om.mat_mul(qout,(Matrix&)q);
+        qout.mat_asign(*this);
+     
+        
+        
+
+        
+        
+
+
+
+
+}
 Filter::Filter(const int N,const double* b,const double* a)
 {
         this->N=N;
@@ -394,35 +552,6 @@ void Filter::filter(double& filter_output,const double& x)
         
 }
 
-void  Matrix::Rates_bn(double& roll,  double& pitch)
-{
-
-this->A[0]=1;
-this->A[1]=sin(roll)*tan(pitch);
-this->A[2]=cos(roll)*tan(pitch);
-this->A[3]=0;
-this->A[4]=cos(roll);
-this->A[5]=-sin(roll);
-this->A[6]=0;
-this->A[7]=sin(roll)/cos(pitch);
-this->A[8]=cos(roll)/cos(pitch);
-
-}
-
-void  Matrix::Rates_nb(double& roll,  double& pitch)
-{
-
-this->A[0]=1;
-this->A[1]=0;
-this->A[2]=-sin(pitch);
-this->A[3]=0;
-this->A[4]=cos(roll);
-this->A[5]=cos(pitch)*sin(roll);
-this->A[6]=0;
-this->A[7]=-sin(roll);
-this->A[8]=cos(roll)*cos(pitch);
-
-}
 
 
 
