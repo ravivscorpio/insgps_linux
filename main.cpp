@@ -10,6 +10,7 @@
 #include <fstream>
 #include "MidjDrv.h"
 #include <sstream>
+#include <queue>
 
 
 
@@ -84,6 +85,10 @@ int main()
     double p,q,r,ax,ay,az;
     double p3,q3,r3,ax3,ay3,az3;
     int t_old;
+    BYTE buffer[100];
+    queue<BYTE> FIFO;
+    int len,jjj;
+    
     if (file.is_open())
     {
         for (int iii=0;iii<20;iii++)
@@ -91,7 +96,7 @@ int main()
         
         while(true)
         {
-
+           
             if  ( MidjDrv_Rx (midg_data))
             {
             

@@ -12,14 +12,17 @@
 #include "MidjDrv_p.h"
 #include <iostream>
 
-
+std::queue<BYTE> FIFO;
+BYTE buffer[100];
 
 BYTE MidjRxIdx=0;
 
 mySerial serialMIDG("/dev/ttyUSB0",115200);
 
-RC MidjDrv_Init (){
+RC MidjDrv_Init ()
+{
    serialMIDG.Open();
+   return 0;
 }
 
 /************************************************************************
@@ -55,119 +58,134 @@ RC MidjDrv_Rx (unsigned char* msg)
    BYTE DataLen;
    RC RxValid=0;
 
-
+   len=serialMIDG.Receive((unsigned char*)buffer,2);
+   if (len<=0)
+      return RxValid;
+   for (int i=0;i<len;i++)
+      FIFO.push(buffer[i]);
 
    // make sure we have buffer
 
    // wait for preamble and ID
-   while (MidjRxIdx < 3)
+   if (MidjRxIdx < 3)
    {      
       
       len = 0;
-//      while (len==0)
-         len=serialMIDG.Receive((unsigned char*)&(msg[MidjRxIdx]),1);
 
-         
 
+         //len=serialMIDG.Receive((unsigned char*)&(msg[MidjRxIdx]),1);
+      if (!FIFO.empty())
+      {
+         msg[MidjRxIdx]=FIFO.front();
+         FIFO.pop();
+      }   
+      else
+         return RxValid;
+      
       if (MidjRxIdx == 0)
       {
-         if (msg[0] == MIDJ_PRE_0){
-            MidjRxIdx++;
-        
+               
+
          
+         if (msg[0] == MIDJ_PRE_0)
+         {
+            MidjRxIdx++;
+            
+            
+
          }
+
       }
-      else  if (MidjRxIdx == 1)
-            {
+      else if (MidjRxIdx == 1)
+      {
+            
                
                if (msg[1] == MIDJ_PRE_1)
                {
                   MidjRxIdx++;
-                 
-               }
+                          
+               }  
                else
                {
-                  MidjRxIdx = 0;
+                     MidjRxIdx = 0;
                }
-            }
-
-            
-      // Get ID
-            else  if (MidjRxIdx == 2)
-                  {
+      }
+      else if (MidjRxIdx == 2)
+      {
                      if (msg[2] == MIDJ_ID_ATT )//|| MidjRxMsg->Data[2] == MIDJ_ID_GPS || MidjRxMsg->Data[2] == MIDJ_ID_UTC)
                      {
-			MidjRxIdx++;
+			               MidjRxIdx++;
                          
                      }   
                      else
                         MidjRxIdx = 0;
 			
-                  }
+      }
+            
    }
 
    // Get Data Len
    if (MidjRxIdx == 3)
    {
       
-   len = 0;
-  // while (len==0)
-      len=serialMIDG.Receive((unsigned char*)&(msg[3]),1);
-   //rc = ExtUartDrv_Rx (MIDJ_PORT, &(MidjRxMsg->Data[3]), &len);
-
-   if (msg[3] > 45)
+      len = 0;
+   // while (len==0)
+         //len=serialMIDG.Receive((unsigned char*)&(msg[3]),1);
+      if (!FIFO.empty())
       {
-         
-      MidjRxIdx = 0;
-		
-      return(RxValid);
-
+            msg[MidjRxIdx]=FIFO.front();
+            FIFO.pop();
       }
-   MidjRxIdx++;
+      else
+         return RxValid;   
+      //rc = ExtUartDrv_Rx (MIDJ_PORT, &(MidjRxMsg->Data[3]), &len);
+
+      if (msg[3] > 45)
+      {
+         MidjRxIdx = 0;
+         return(RxValid);
+      }
+      MidjRxIdx++;
    
    }
 
-   // Get Msg data
-   // Preamble + ID + Count field + Data_Count + CS_Len
-   DataLen = 2 + 1 + 1 + msg[3] + 2;
-   len = DataLen - MidjRxIdx;
-   int len0=0;
-//while (len0==0)
-   len0=serialMIDG.Receive((unsigned char*)&msg[MidjRxIdx],len);
-   MidjRxIdx += len0;
-
-   // check if we got all [Msg_Hdr + Data_Len + CS_Len]
-   if (MidjRxIdx >= DataLen)
+   if (MidjRxIdx > 3)
+   {
+      // Get Msg data
+      // Preamble + ID + Count field + Data_Count + CS_Len
+      DataLen = 2 + 1 + 1 + msg[3] + 2;
+      len = DataLen - MidjRxIdx;
+      int len0=0;
+   //while (len0==0)
+      //len0=serialMIDG.Receive((unsigned char*)&msg[MidjRxIdx],len);
+      int i=0;
+      for (i=0;i<len;i++)
       {
-        
-	
-	MidjRxIdx = 0;
+         if (!FIFO.empty())
+         {
+            msg[MidjRxIdx]=FIFO.front();
+            FIFO.pop();
+         }
+         else
+            return RxValid;
+         MidjRxIdx++;
 
-      // check CS
-      UINT16 CheckSum=0;
-//      CalcFletcherCheckSum(&(msg[2]), DataLen-4, &CheckSum);
-//      if (rc || CheckSum == ((msg[DataLen-1] << 8) | msg[DataLen-2]))
-//        RxValid=1;
-        //else
-      //  RxValid=0;
-      
-//      rc = MidjDrv_FixMsg((BYTE*)msg);
- //    CalcFletcherCheckSum(&(msg[2]), DataLen-4, &CheckSum);
-   //   if (CheckSum == ((msg[DataLen-1] << 8) | msg[DataLen-2]))
-     {
-//	for  (int i=0;i<45;i++)
-	//	printf("%02x",msg[i]);
-	//printf("\n");
+      }   
+      //MidjRxIdx += len0;
 
-  	     RxValid=1;    
-        rc = MidjDrv_FixMsg((BYTE*)msg);
-     }
-     // MidjRxMsg = NULL;
-      //if (rc)
-        // return(rc);
-      
+      // check if we got all [Msg_Hdr + Data_Len + CS_Len]
+      if (MidjRxIdx >= DataLen)
+      {
+         MidjRxIdx = 0;
+         UINT16 CheckSum=0;
+       //CalcFletcherCheckSum(&(msg[2]), DataLen-4, &CheckSum);
+         //if (CheckSum == ((msg[DataLen-1] << 8) | msg[DataLen-2]))
+         RxValid=1;    
+         rc = MidjDrv_FixMsg((BYTE*)msg);
       }
 
+      
+   }
    return(RxValid);
 }
 
