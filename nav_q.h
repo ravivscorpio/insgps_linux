@@ -74,7 +74,7 @@ public:
     void earthrate(Matrix & omega_ie_n);
     void radius();
     void transportate(Matrix & omega_en_n);
-    void update_att(Matrix & DCMbn_n,Matrix& wb,const double& dt);
+    void update_att(Euler & DCMbn_n,Matrix& wb,const double& dt);
     void gravity();
     void vel_update(Matrix & vel_n,Matrix& fn,const double& dt);
     void pos_update(double& lt,double & lg , double& h,const double& dt);
@@ -83,7 +83,7 @@ public:
     void get_F(IMU& imu);
     void kalman(Matrix& xp,Matrix &z,double& dtg);
     void update(Matrix& gb_fix,Matrix& ab_fix,Matrix& gb_grift,Matrix& ab_drift);
-    void update_yaw(Matrix& DCM);
+    void update_yaw(Euler& DCM);
 
 };
 #endif

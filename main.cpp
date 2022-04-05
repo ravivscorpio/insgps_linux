@@ -26,13 +26,10 @@ int main()
     string line,word;
     fstream file (fname,ios::in);
     fstream file_out ("pitch.txt",ios::out);
-    Matrix mat0;
-    Matrix mat;
-    Matrix mat1;
-    Matrix mat2(1,3,5);
+
     IMU imu1,imu2;
-    mat.mat_skew(1,2,3);
-    //mat.showmat();
+    
+    
     //imu1.imu_si_errors(imu2,0.01);
     GPS gps;  
 
@@ -46,9 +43,9 @@ int main()
     double lt,lg,h;
     Matrix vel(3,1,0);
     Matrix fn(3,1,0);
-    Matrix DCMnb;
-    Matrix DCMbn;
-    Matrix EulerRates(3,1,0);   
+    Euler DCMnb;
+    Euler DCMbn;
+    Euler EulerRates(3,1,0);   
     Matrix pqr(3,1,0);
     Matrix pqr_drift(3,1,0);
 
@@ -69,7 +66,7 @@ int main()
     bool yaw_valid=false,gps_valid=false,first_init_gps=false;
     double yaw_measure;
     Matrix yaw_drift(3,1,0);
-    Matrix Rate_nb(3,3,0);
+    Euler Rate_nb(3,3,0);
     int fff=0;
     double a[50],b[50];
     int M=5,N=15;
@@ -258,7 +255,7 @@ int main()
            }     
               
            
-           if (kkk%505==0)
+           if (false)//(kkk%505==0)
            {
 	       dty=t-ty_old;
 	       ty_old=t;
