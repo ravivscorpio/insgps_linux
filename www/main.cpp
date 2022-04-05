@@ -26,9 +26,12 @@ int main()
     string line,word;
     fstream file (fname,ios::in);
     fstream file_out ("pitch.txt",ios::out);
-
+    Matrix mat0;
+    Matrix mat;
+    Matrix mat1;
+    Matrix mat2(1,3,5);
     IMU imu1,imu2;
-    
+    mat.mat_skew(1,2,3);
     //mat.showmat();
     imu1.imu_si_errors(imu2,0.01);
     GPS gps;  
@@ -42,8 +45,8 @@ int main()
     double lt,lg,h;
     Matrix vel(3,1,0);
     Matrix fn(3,1,0);
-    Euler DCMnb;
-    Euler DCMbn;
+    Matrix DCMnb;
+    Matrix DCMbn;
 
     Matrix xp(21,1,9);
 
@@ -195,8 +198,6 @@ int t_old;
                 nav.earthrate(omega_ie_n);
                 nav.transportate(omega_en_n);
                 nav.update_att(DCMbn,wb_corrected,dti);
-                DCMbn.dcm2euler(yaw,pitch,roll);
-                cout<<t<<" "<<roll/3.14*180<<" "<<pitch/3.14*180<<" "<<yaw/3.14*180<<endl;
                 nav.gravity();
                 DCMbn.mat_mul(fn,fb_corrected);
                  

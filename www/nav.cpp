@@ -7,7 +7,6 @@
     void NAV::init(IMU_DATA& imu_data,GPS_DATA& gps_data,GPS& gps, IMU& imu)
     {
         this->DCM_bn.I();
-        this->qua.euler2quat(0,0,0);
         this->lt=gps_data.pos.mat_get(0,0);
         this->lg=gps_data.pos.mat_get(1,0);
         this->h=gps_data.pos.mat_get(2,0);
@@ -98,29 +97,16 @@
         this->omega_en_n.mat_set(0,1,-this->vel.mat_get(0,0)/(this->R.mat_get(0,0)+this->h));
         this->omega_en_n.mat_set(0,2,-this->vel.mat_get(1,0)*tan(this->lt)/(this->R.mat_get(1,0)+this->h));
     }
-    void NAV::update_att(Euler & DCMbn_n,Matrix& wb,const double& dt)
+    void NAV::update_att(Matrix & DCMbn_n,Matrix& wb,const double& dt)
     {
-        Matrix A(3,3,0),S1(3,3,0),S2(3,3,0),S3(3,3,0),S4(3,3,0),S5(3,3,0),I(3,3,0),DCM_nb(3,3,0);
-        Euler S;
-        Quaternion q;
-        
-        double magn,q_norm;
+        Matrix S(3,3,0),A(3,3,0),S1(3,3,0),S2(3,3,0),S3(3,3,0),S4(3,3,0),S5(3,3,0),I(3,3,0),DCM_nb(3,3,0);
+        double magn;
         Matrix euler_i(3,1,1);
         Matrix O1(3,1,0),O2(3,1,0),wb_n(3,1,0);
-
         this->DCM_bn.mat_t(DCM_nb);
         this->omega_ie_n.mat_add(O1,this->omega_en_n);
         DCM_nb.mat_mul(O2,O1);
         wb.mat_sub(wb_n,O2);
-        
-
-#ifndef DCM_
-        q.qua_update(this->qua,wb_n,dt);
-        q_norm=q.mat_norm();
-        q.scalermultiply(q,1/q_norm);
-        q.qua2dcm(DCMbn_n);
-        q.mat_asign(this->qua);
-#else
         wb_n.scalermultiply(euler_i,dt);
         magn=euler_i.mat_norm();
         I.I();
@@ -142,7 +128,7 @@
             I.mat_asign(A);
 
         this->DCM_bn.mat_mul(DCMbn_n,A);
-#endif        
+        
         DCMbn_n.mat_asign(this->DCM_bn);
     
         // DCMbn_n = DCMbn * A;
@@ -169,8 +155,7 @@
     }
     void NAV::vel_update(Matrix & vel_n,Matrix& fn,const double& dt)
     {
-        Matrix fn_c(3,1,0),fn_c1(3,1,0),S1(3,1,0),S2(3,1,0),S3,coriolis(3,1,0);
-        Euler S(3,3,0);
+        Matrix fn_c(3,1,0),fn_c1(3,1,0),S,S1(3,1,0),S2(3,1,0),S3,coriolis(3,1,0);
         fn.mat_asign(this->fn);
         S.mat_skew(this->vel.mat_get(0,0),this->vel.mat_get(1,0),this->vel.mat_get(2,0));
         this->omega_ie_n.scalermultiply(S1,2);
@@ -208,9 +193,9 @@
         lg=this->lg;
         h=this->h;
         
-//        cout.precision(10);
+        cout.precision(10);
         
-//        cout<<this->pitch*180.0/3.1415<<" "<<this->roll*180.0/3.1415<<" "<<this->yaw*180.0/3.1415<<" "<<endl;
+        cout<<this->pitch*180.0/3.1415<<" "<<this->roll*180.0/3.1415<<" "<<this->yaw*180.0/3.1415<<" "<<endl;
         
         //cout<<this->vel.mat_get(0,0)<<" "<<this->vel.mat_get(1,0)<<" "<<this->vel.mat_get(2,0)<<endl;
         
@@ -435,13 +420,7 @@
         
         Matrix vel1(3,1,0);
         Matrix Z9(9,1,0);
-        Matrix I(3,3,0),M(3,3,0),MM(3,3,0);
-        Euler E(3,3,0);
-        Matrix antm(3,3,0);
-        Matrix Temp(4,3,0);
-        Matrix euler(3,1,0);
-        Quaternion d_qua;
-        double q_norm=1;
+        Matrix I(3,3,0),M(3,3,0),MM(3,3,0),E(3,3,0);
         I.I();
         
         this->roll=this->roll-this->xp.mat_get(0,0);
@@ -456,40 +435,13 @@
         this->xp.mat_sub_get(ab_fix,12,0);
         this->xp.mat_sub_get(gb_drift,15,0);
         this->xp.mat_sub_get(ab_drift,18,0);
-
-#ifndef DCM_
-        antm.mat_set(0,0,0);antm.mat_set(0,1,this->qua.mat_get(2,0));antm.mat_set(0,2,-this->qua.mat_get(1,0));
-        antm.mat_set(1,0,-this->qua.mat_get(2,0));antm.mat_set(1,1,0);antm.mat_set(1,2,this->qua.mat_get(0,0));
-        antm.mat_set(2,0,this->qua.mat_get(1,0));antm.mat_set(2,1,-this->qua.mat_get(0,0));antm.mat_set(2,2,0);
-
-        I.scalermultiply(E,this->qua.mat_get(3,0));
-        E.mat_add(E,antm);
-        E.mat_sub_set(Temp,0,0);
-        Temp.mat_set(3,0,-this->qua.mat_get(0,0));
-        Temp.mat_set(3,1,-this->qua.mat_get(1,0));
-        Temp.mat_set(3,2,-this->qua.mat_get(2,0));
-        Temp.scalermultiply(Temp,0.5);
-        this->xp.mat_sub_get(euler,0,0);
-        Temp.mat_mul(d_qua,euler);
-        this->qua.mat_add(this->qua,d_qua);
-        q_norm=this->qua.mat_norm();
-        this->qua.scalermultiply(this->qua,1/q_norm);
-        this->qua.qua2dcm(this->DCM_bn);
-
-#else
         E.mat_skew(this->xp.mat_get(0,0),this->xp.mat_get(1,0),this->xp.mat_get(2,0));
         E.mat_add(M,I);
         this->DCM_bn.mat_asign(MM);
         M.mat_mul(this->DCM_bn,MM);
-#endif
         Z9.mat_sub_set(this->xp,0,0);
         
 
 
 
     }
-    void NAV::update_yaw(Euler& DCM)
-    {
-	DCM.mat_asign(this->DCM_bn);
-    }
-

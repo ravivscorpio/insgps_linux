@@ -20,7 +20,6 @@ mySerial serialMIDG("/dev/ttyUSB0",115200);
 
 RC MidjDrv_Init (){
    serialMIDG.Open();
-   return 0;
 }
 
 /************************************************************************
