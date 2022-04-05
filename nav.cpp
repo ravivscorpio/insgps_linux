@@ -101,7 +101,7 @@
     void NAV::update_att(Euler & DCMbn_n,Matrix& wb,const double& dt)
     {
         Matrix A(3,3,0),S1(3,3,0),S2(3,3,0),S3(3,3,0),S4(3,3,0),S5(3,3,0),I(3,3,0),DCM_nb(3,3,0);
-        Euler S;
+        Euler S(3,3,0);
         Quaternion q;
         
         double magn,q_norm;

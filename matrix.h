@@ -10,7 +10,7 @@
 #include <algorithm>
 #pragma once
 
-//#define DCM_
+#define DCM_
 
 #define MAX_FILTER_LEN 100
 
