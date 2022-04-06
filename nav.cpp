@@ -512,17 +512,13 @@
     void NAV::calibrate(Matrix &cal,Matrix &wb,Matrix &fb)
     {   
         //cal = roll,pitch,wb_fix,fb_fix
-        double a[MAX_FILTER_LEN],b[MAX_FILTER_LEN];
+        constexpr int n =MAX_FILTER_LEN;
+        constexpr Coef<n> coefs =Coef<n>();
         double ax,ay,az,wx,wy,wz;
         
-        static Filter ax_f(100,b,a),ay_f(100,b,a),az_f(100,b,a);
-        static Filter wx_f(100,b,a),wy_f(100,b,a),wz_f(100,b,a);
-        ax_f.coef();
-        ay_f.coef();
-        az_f.coef();
-        wx_f.coef();
-        wy_f.coef();
-        wz_f.coef();
+        static Filter ax_f(n,coefs.b,coefs.a),ay_f(n,coefs.b,coefs.a),az_f(n,coefs.b,coefs.a);
+        static Filter wx_f(n,coefs.b,coefs.a),wy_f(n,coefs.b,coefs.a),wz_f(n,coefs.b,coefs.a);
+
 
         ax_f.filter(ax,fb.mat_get(0,0));
         ay_f.filter(ay,fb.mat_get(1,0));

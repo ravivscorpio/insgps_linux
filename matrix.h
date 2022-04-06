@@ -109,4 +109,25 @@ public:
     void filter(double& filter_output,const double& x);
     void coef();
 };
+template<int size>
+struct Coef{
+  double a[size];
+  double b[size];
+
+  // 'constexpr' constructor:
+  constexpr Coef():a(),b(){
+    for(int i = 0; i < size; i++)
+  {
+      a[i] = 0;
+      b[i] = 1.0/size;
+  }
+  }
+
+  // This member function should have 'const':
+
+};
+
+
+
+
 #endif

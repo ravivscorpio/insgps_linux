@@ -65,13 +65,9 @@ int main()
     double a[50],b[50];
     int M=5,N=15;
     MidjDrv_Init ();
-    for (int i=0;i<N;i++)
-    {
-        a[i]=0;
-        b[i]=1.0   /N;
-    }
-    Filter p1(M),q1(M),r1(M),ax1(M),ay1(M),az1(M),t1(M);
-    Filter p2(N,b,a),q2(N,b,a),r2(N,b,a),ax2(N,b,a),ay2(N,b,a),az2(N,b,a);
+    constexpr int n =100;
+    constexpr Coef<n> coefs =Coef<n>();
+
     double p,q,r,ax,ay,az;
     double p3,q3,r3,ax3,ay3,az3;
     int t_old;
