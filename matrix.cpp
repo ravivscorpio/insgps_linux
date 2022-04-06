@@ -551,8 +551,15 @@ void Filter::filter(double& filter_output,const double& x)
         data_out.push_front(filter_output);
         
 }
+ void Filter::coef()
+ {
 
-
+        for (int i=0;i<MAX_FILTER_LEN;i++)
+        {
+            this->a[i]=0;
+            this->b[i]=1.0/100.0;
+        }
+ }
 
 
 

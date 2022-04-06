@@ -20,7 +20,10 @@ private:
     double yaw;
     double pitch;
     double roll;
+    double cal_idx;
     Euler DCM_bn;
+    Matrix EulerRates;
+    Matrix yaw_drift;
     Quaternion qua;
     Matrix omega_ie_n;
     Matrix omega_en_n;
@@ -52,7 +55,10 @@ public:
         yaw(0),
         pitch(0),
         roll(0),
+        cal_idx(0),
         DCM_bn(3,3,0),
+        EulerRates(3,1,0),
+        yaw_drift(3,1,0),
         omega_ie_n(3,1,0),
         omega_en_n(3,1,0),
         Tpr(3,3,0),
@@ -78,12 +84,13 @@ public:
     void gravity();
     void vel_update(Matrix & vel_n,Matrix& fn,const double& dt);
     void pos_update(double& lt,double & lg , double& h,const double& dt);
-    void init(IMU_DATA& imu_data,GPS_DATA& gps_data,GPS& gps, IMU& imu);
+    void init(IMU_DATA& imu_data,GPS_DATA& gps_data,GPS& gps, IMU& imu,double& roll,double& pitch,double& yaw);
     void get_Tpr(Matrix& Tpr);
     void get_F(IMU& imu);
     void kalman(Matrix& xp,Matrix &z,double& dtg);
     void update(Matrix& gb_fix,Matrix& ab_fix,Matrix& gb_grift,Matrix& ab_drift);
-    void update_yaw(Euler& DCM);
+    void update_yaw(Euler& DCM,double &yaw_measure, double dt);
+    void calibrate(Matrix &cal,Matrix &wb,Matrix &fb);
 
 };
 #endif

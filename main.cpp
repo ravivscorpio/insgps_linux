@@ -19,6 +19,7 @@ using namespace std;
 unsigned char midg_data[4096];
 unsigned int len=0;
 MIDJ_InsMsg* InsMsg;
+Matrix cal(8,1,0);
 int main()
 {
     int kkk=0;
@@ -38,7 +39,7 @@ int main()
 
     NAV nav;
 
-    double yaw,pitch,roll;
+    double yaw,pitch,roll,yaw_measure;
     double lt,lg,h;
     Matrix vel(3,1,0);
     Matrix fn(3,1,0);
@@ -58,8 +59,8 @@ int main()
     Matrix Tpr;
     Matrix z(6,1,0),zp(3,1,0),zv(3,1,0),zp_angle(3,1,0);
     double data[15];
-    double dtg=0.2,dti=0.01,tg_old=0,ti_old=0,t=0;
-    bool gps_valid=false,first_init_gps=false;
+    double dtg=0.2,dti=0.01,dty=10,tg_old=0,ti_old=0,t=0,ty_old=0;
+    bool gps_valid=false,yaw_valid=false,first_init_gps=false;
     int fff=0;
     double a[50],b[50];
     int M=5,N=15;
@@ -73,7 +74,8 @@ int main()
     Filter p2(N,b,a),q2(N,b,a),r2(N,b,a),ax2(N,b,a),ay2(N,b,a),az2(N,b,a);
     double p,q,r,ax,ay,az;
     double p3,q3,r3,ax3,ay3,az3;
-int t_old;
+    int t_old;
+    int idx=0;
     if (file.is_open())
     {
         for (int iii=0;iii<20;iii++)
@@ -157,8 +159,20 @@ int t_old;
                 tg_old=t;
                 ti_old=t;
 
+                if (idx<200) 
+                {
                 
-                first_init_gps=true;
+                    nav.calibrate(cal,imu_data.wb,imu_data.fb);
+                    cout<<cal.mat_get(1,0)/3.14*180<<" "<<cal.mat_get(0,0)/3.14*180<<endl;
+                    idx++;
+                    continue;
+                }
+                else
+                {
+                    
+                    first_init_gps=true;
+                }
+                
                 nav.vel_update(vel,fn,0);
                 nav.pos_update(lt,lg,h,0);
                 /*imu_data.wb.mat_set(0,0,0.0793e-3);
@@ -174,7 +188,24 @@ int t_old;
                 gps_data.vel.mat_set(0,0,0.0);
                 gps_data.vel.mat_set(1,0,0.0);
                 gps_data.vel.mat_set(2,0,0.0);
-                nav.init(imu_data,gps_data,gps,imu2);
+
+                imu2.gb_fix.mat_set(0,0,+cal.mat_get(2,0));
+                imu2.gb_fix.mat_set(1,0,+cal.mat_get(3,0));
+                imu2.gb_fix.mat_set(2,0,+cal.mat_get(4,0));
+                imu2.ab_fix.mat_set(0,0,+cal.mat_get(5,0));
+                imu2.ab_fix.mat_set(1,0,+cal.mat_get(6,0));
+                imu2.ab_fix.mat_set(2,0,+cal.mat_get(7,0));
+                nav.init(imu_data,gps_data,gps,imu2,cal.mat_get(0,0),cal.mat_get(1,0),yaw);
+                
+                
+
+                   
+
+                
+
+
+                    
+
                 
             }
             
@@ -229,7 +260,7 @@ int t_old;
 
 		gps_valid=false;
 	   }
-           if (kkk%10==0)
+       if (kkk%10==0)
 	   {
                gps_valid=true;
                 
@@ -242,6 +273,15 @@ int t_old;
             kkk++;
             
         }
+        if (kkk%505==0)
+           {
+              dty=t-ty_old;
+              ty_old=t;
+              yaw_valid=true;
+              yaw_measure=0;
+              nav.update_yaw(DCMbn,yaw_measure,dty);
+           }
+
     }
     printf("end");
 

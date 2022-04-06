@@ -10,7 +10,7 @@
 #include <algorithm>
 #pragma once
 
-#define DCM_
+//#define DCM_
 
 #define MAX_FILTER_LEN 100
 
@@ -107,5 +107,6 @@ public:
     ~Filter();
     void median_filter(double& filter_output,const double& x);
     void filter(double& filter_output,const double& x);
+    void coef();
 };
 #endif

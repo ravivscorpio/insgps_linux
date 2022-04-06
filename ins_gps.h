@@ -6,7 +6,7 @@
 #pragma once
 #define PI 3.1415926535897932384626433832795
 #define D2R  PI/180
-#define R2D  180/pi
+#define R2D  180/PI
 #define G2MSS  9.81
 #define MSS2G  (1/G2MSS);     
 #define KT2MS  0.514444;   % knot to m/s
@@ -45,7 +45,7 @@ public:
             ab_corr(1,3,500),    
             freq(1,3,50),
             align(1,3,0),
-            align_err(1,3,1*D2R)
+            align_err(1,3,0.1*D2R)
 
     {
               /*arw.mat_set(0,0,1.240492296339036e-03);
@@ -57,7 +57,7 @@ public:
                gb_drift.mat_set(0,0,7.112094640463134e-05);
                gb_drift.mat_set(0,1,7.112094640463134e-05);
                gb_drift.mat_set(0,2,1.663320036005468e-04);*/
-               align_err.mat_set(0,2,0*D2R);
+               align_err.mat_set(0,2,1*D2R);
     }
 
 // Angle random walks [X Y Z] (deg/root-hour)

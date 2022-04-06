@@ -4,10 +4,12 @@
     {
 
     }
-    void NAV::init(IMU_DATA& imu_data,GPS_DATA& gps_data,GPS& gps, IMU& imu)
+    void NAV::init(IMU_DATA& imu_data,GPS_DATA& gps_data,GPS& gps, IMU& imu,double& roll,double& pitch,double& yaw)
     {
-        this->DCM_bn.I();
-        this->qua.euler2quat(0,0,0);
+        Euler DCMnb;
+        DCMnb.euler2dcm(yaw,pitch,roll);
+        DCMnb.mat_t(this->DCM_bn);
+        this->qua.euler2quat(yaw,pitch,roll);
         this->lt=gps_data.pos.mat_get(0,0);
         this->lg=gps_data.pos.mat_get(1,0);
         this->h=gps_data.pos.mat_get(2,0);
@@ -103,6 +105,7 @@
         Matrix A(3,3,0),S1(3,3,0),S2(3,3,0),S3(3,3,0),S4(3,3,0),S5(3,3,0),I(3,3,0),DCM_nb(3,3,0);
         Euler S(3,3,0);
         Quaternion q;
+        double yaw_old,pitch_old,roll_old;
         
         double magn,q_norm;
         Matrix euler_i(3,1,1);
@@ -147,8 +150,12 @@
     
         // DCMbn_n = DCMbn * A;
         this->DCM_bn.dcm2euler(this->yaw,this->pitch,this->roll);
-
-
+        EulerRates.mat_set(0,0,(this->roll-roll_old)/dt);
+        EulerRates.mat_set(0,0,(this->pitch-pitch_old)/dt);
+        EulerRates.mat_set(0,0,(this->yaw-yaw_old)/dt);
+        roll_old=this->roll;
+        pitch_old=this->pitch;
+        yaw_old=this->yaw;
 
     }
 
@@ -488,8 +495,54 @@
 
 
     }
-    void NAV::update_yaw(Euler& DCM)
+    void NAV::update_yaw(Euler& DCM,double &yaw_measure, double dt)
     {
-	DCM.mat_asign(this->DCM_bn);
+             Matrix pqr(3,1,0),pqr_drift(3,1,0);
+             Euler Rate_nb,DCMnb;
+        
+             Rate_nb.Rates_nb(this->roll,this->pitch);
+             Rate_nb.mat_mul(pqr,this->EulerRates);
+             this->yaw_drift.mat_set(2,0, this->yaw_drift.mat_get(2,0)+(yaw_measure-this->yaw)/dt);
+             Rate_nb.mat_mul(pqr_drift,yaw_drift);
+             this->yaw=this->yaw+(yaw_measure-this->yaw);
+             DCMnb.euler2dcm(this->yaw,this->pitch,this->roll);
+             DCMnb.mat_t(this->DCM_bn);
+             
+    }
+    void NAV::calibrate(Matrix &cal,Matrix &wb,Matrix &fb)
+    {   
+        //cal = roll,pitch,wb_fix,fb_fix
+        double a[MAX_FILTER_LEN],b[MAX_FILTER_LEN];
+        double ax,ay,az,wx,wy,wz;
+        
+        static Filter ax_f(100,b,a),ay_f(100,b,a),az_f(100,b,a);
+        static Filter wx_f(100,b,a),wy_f(100,b,a),wz_f(100,b,a);
+        ax_f.coef();
+        ay_f.coef();
+        az_f.coef();
+        wx_f.coef();
+        wy_f.coef();
+        wz_f.coef();
+
+        ax_f.filter(ax,fb.mat_get(0,0));
+        ay_f.filter(ay,fb.mat_get(1,0));
+        az_f.filter(az,fb.mat_get(2,0));
+        wx_f.filter(wx,wb.mat_get(0,0));
+        wy_f.filter(wy,wb.mat_get(1,0));
+        wz_f.filter(wz,wb.mat_get(2,0));
+
+        pitch=atan2(ax,sqrt(ay*ay+az*az));
+        roll=atan2(-ay,sqrt(ax*ax+az*az));
+
+        cal.mat_set(0,0,roll);
+        cal.mat_set(1,0,pitch);
+        cal.mat_set(2,0,wx);
+        cal.mat_set(3,0,wy);
+        cal.mat_set(4,0,wz);
+        cal.mat_set(5,0,ax);
+        cal.mat_set(6,0,ay);
+        cal.mat_set(7,0,az);
+
+    
     }
 
